@@ -1,0 +1,6 @@
+openai
+pdfplumber
+python-docx
+pyyaml
+colorama
+python-dotenv

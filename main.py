@@ -1,11 +1,10 @@
-# Copyright (c) 2025 Marco De Roni. All rights reserved.
+# Copyright (c) 2026 Marco De Roni. All rights reserved.
 # Licensed under the MIT License — see LICENSE file for details.
 
 import os
-import sys
 from colorama import Fore, Style, init
 from reviewer.extractor import extract_text
-from reviewer.analyzer import analyze_contract
+from reviewer.analyzer import analyze_contract, load_settings
 from reviewer.reporter import generate_report
 
 init(autoreset=True)
@@ -15,9 +14,14 @@ OUTPUT_DIR = "output"
 
 
 def main():
-    print(Fore.WHITE + Style.BRIGHT + "\n=== Legal GPT Reviewer | Powered by GPT-4o ===\n")
+    settings = load_settings()
+    provider = settings.get("provider", "groq")
+    output_format = settings.get("output_format", "both")
+    multi_agent = settings.get("multi_agent", False)
+    mode = "MULTI-AGENT" if multi_agent else "SINGLE AGENT"
 
-    # Find contracts
+    print(Fore.WHITE + Style.BRIGHT + f"\n=== Legal GPT Reviewer | Provider: {provider.upper()} | Mode: {mode} ===\n")
+
     contracts = [
         f for f in os.listdir(CONTRACTS_DIR)
         if f.lower().endswith((".pdf", ".docx"))
@@ -30,7 +34,6 @@ def main():
 
     print(Fore.CYAN + f"📂 {len(contracts)} contratto/i trovato/i\n")
 
-    # Optional context
     print(Fore.WHITE + "Vuoi aggiungere contesto? (es. 'we are the vendor, customer is a bank')")
     print(Fore.WHITE + "Premi INVIO per saltare: ", end="")
     context = input().strip()
@@ -41,33 +44,42 @@ def main():
         print(Fore.CYAN + f"\n📄 Analisi: {filename}")
 
         try:
-            # Extract text
             print("   → Estrazione testo...")
             text = extract_text(path)
             print(f"   → {len(text)} caratteri estratti")
 
-            # Analyze with GPT-4o
-            print("   → Invio a GPT-4o...")
-            analysis = analyze_contract(text, context)
+            if multi_agent:
+                print(f"   → Avvio modalità MULTI-AGENT ({provider.upper()})...")
+            else:
+                print(f"   → Invio a {provider.upper()}...")
 
-            # Print summary to terminal
-            lines = analysis.split("\n")
-            for line in lines[:10]:  # Print first 10 lines as preview
-                if "RED" in line and "OVERALL" in line:
-                    print(Fore.RED + f"   {line}")
-                elif "YELLOW" in line and "OVERALL" in line:
-                    print(Fore.YELLOW + f"   {line}")
-                elif "GREEN" in line and "OVERALL" in line:
-                    print(Fore.GREEN + f"   {line}")
+            analysis, provider_used = analyze_contract(text, context)
+
+            # Print preview
+            for line in analysis.split("\n")[:10]:
+                if "OVERALL RISK" in line:
+                    if "RED" in line:
+                        print(Fore.RED + f"   {line}")
+                    elif "YELLOW" in line:
+                        print(Fore.YELLOW + f"   {line}")
+                    elif "GREEN" in line:
+                        print(Fore.GREEN + f"   {line}")
                 elif line.strip():
                     print(f"   {line}")
 
-            # Generate Word report
-            print("\n   → Generazione report Word...")
-            report_path = generate_report(filename, analysis, OUTPUT_DIR)
-            print(Fore.GREEN + f"   ✓ Report: {report_path}")
+            print(f"\n   → Generazione report ({output_format})...")
+            paths = generate_report(
+                contract_name=filename,
+                analysis=analysis,
+                provider=provider_used,
+                output_dir=OUTPUT_DIR,
+                output_format=output_format
+            )
 
-            results.append({"filename": filename, "report": report_path})
+            for fmt, p in paths.items():
+                print(Fore.GREEN + f"   ✓ {fmt.upper()}: {p}")
+
+            results.append({"filename": filename, "paths": paths})
 
         except Exception as e:
             print(Fore.RED + f"   ❌ Errore: {e}")

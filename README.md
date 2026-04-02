@@ -249,6 +249,12 @@ Senior Commercial Legal Counsel | EMEA
 
 ---
 
+## Demo
+
+![Legal GPT Reviewer Demo](assets/demo.svg)
+
+---
+
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.

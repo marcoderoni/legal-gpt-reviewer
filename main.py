@@ -2,6 +2,7 @@
 # Licensed under the MIT License — see LICENSE file for details.
 
 import os
+import argparse
 from colorama import Fore, Style, init
 from reviewer.extractor import extract_text
 from reviewer.analyzer import analyze_contract, load_settings
@@ -13,8 +14,27 @@ CONTRACTS_DIR = "contracts"
 OUTPUT_DIR = "output"
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Legal GPT Reviewer — AI contract analysis")
+    parser.add_argument("--provider", choices=["groq", "openai", "claude"], help="AI provider")
+    parser.add_argument("--mode", choices=["single", "multi"], help="Analysis mode")
+    parser.add_argument("--output", choices=["docx", "pdf", "both"], help="Output format")
+    parser.add_argument("--context", type=str, help="Additional context for analysis")
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     settings = load_settings()
+
+    # CLI flags override settings.yaml
+    if args.provider:
+        settings["provider"] = args.provider
+    if args.mode:
+        settings["multi_agent"] = (args.mode == "multi")
+    if args.output:
+        settings["output_format"] = args.output
+
     provider = settings.get("provider", "groq")
     output_format = settings.get("output_format", "both")
     multi_agent = settings.get("multi_agent", False)
@@ -34,9 +54,14 @@ def main():
 
     print(Fore.CYAN + f"📂 {len(contracts)} contratto/i trovato/i\n")
 
-    print(Fore.WHITE + "Vuoi aggiungere contesto? (es. 'we are the vendor, customer is a bank')")
-    print(Fore.WHITE + "Premi INVIO per saltare: ", end="")
-    context = input().strip()
+    # Context — CLI flag or interactive input
+    if args.context:
+        context = args.context
+        print(Fore.WHITE + f"Contesto: {context}\n")
+    else:
+        print(Fore.WHITE + "Vuoi aggiungere contesto? (es. 'we are the vendor, customer is a bank')")
+        print(Fore.WHITE + "Premi INVIO per saltare: ", end="")
+        context = input().strip()
 
     results = []
     for filename in contracts:

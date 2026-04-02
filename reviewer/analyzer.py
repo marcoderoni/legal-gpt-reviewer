@@ -151,6 +151,17 @@ def analyze_contract(text: str, context: str = "") -> tuple:
     playbook_context = load_playbook()
     system_prompt = SYSTEM_PROMPT_BASE + playbook_context
 
+    # Sanitize PII before sending to API
+    try:
+        from reviewer.sanitizer import sanitize, desanitize
+        sanitized_text, pii_mapping = sanitize(text[:max_chars])
+        print(f"   → PII sanitizzato: {len(pii_mapping)} entità redatte")
+    except Exception as e:
+        print(f"   → PII sanitization skipped: {e}")
+        sanitized_text = text[:max_chars]
+        pii_mapping = {}
+
+    # Build user message
     user_message = f"""Please review the following contract and provide a full risk assessment.
 
 {f'Additional context: {context}' if context else ''}
@@ -158,7 +169,7 @@ def analyze_contract(text: str, context: str = "") -> tuple:
 Playbook clauses covered: {', '.join(get_playbook_clauses())}
 
 CONTRACT TEXT:
-{text[:max_chars]}
+{sanitized_text}
 """
 
     response = client.chat.completions.create(
@@ -171,4 +182,8 @@ CONTRACT TEXT:
         max_tokens=2000,
     )
 
-    return response.choices[0].message.content, provider
+    result = response.choices[0].message.content
+    if pii_mapping:
+        from reviewer.sanitizer import desanitize
+        result = desanitize(result, pii_mapping)
+    return result, provider

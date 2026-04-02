@@ -44,16 +44,32 @@ def main():
         print(Fore.CYAN + f"\n📄 Analisi: {filename}")
 
         try:
+            # Extract text
             print("   → Estrazione testo...")
             text = extract_text(path)
             print(f"   → {len(text)} caratteri estratti")
 
+            # Sanitize PII
+            try:
+                from reviewer.sanitizer import sanitize, desanitize
+                text, pii_mapping = sanitize(text)
+                print(f"   → PII sanitizzato: {len(pii_mapping)} entità redatte")
+            except Exception as e:
+                pii_mapping = {}
+                print(f"   → PII sanitization skipped: {e}")
+
+            # Analyze
             if multi_agent:
                 print(f"   → Avvio modalità MULTI-AGENT ({provider.upper()})...")
             else:
                 print(f"   → Invio a {provider.upper()}...")
 
             analysis, provider_used = analyze_contract(text, context)
+
+            # Restore PII in analysis
+            if pii_mapping:
+                from reviewer.sanitizer import desanitize
+                analysis = desanitize(analysis, pii_mapping)
 
             # Print preview
             for line in analysis.split("\n")[:10]:
@@ -67,6 +83,7 @@ def main():
                 elif line.strip():
                     print(f"   {line}")
 
+            # Generate report
             print(f"\n   → Generazione report ({output_format})...")
             paths = generate_report(
                 contract_name=filename,

@@ -158,6 +158,23 @@ Drop one or more `.pdf` or `.docx` files into the `contracts/` folder.
 ```bash
 python3 main.py
 ```
+### Optional CLI flags
+```bash
+# Override provider
+python3 main.py --provider openai
+
+# Override mode
+python3 main.py --mode single
+
+# Override output format
+python3 main.py --output pdf
+
+# Add context without interactive prompt
+python3 main.py --context "we are the customer, vendor is Microsoft"
+
+# Combine flags
+python3 main.py --provider groq --mode multi --output both --context "we are the vendor"
+```
 
 ---
 

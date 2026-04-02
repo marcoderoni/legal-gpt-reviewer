@@ -1,5 +1,11 @@
 # Legal GPT Reviewer
 
+![Python](https://img.shields.io/badge/python-3.9+-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Last Commit](https://img.shields.io/github/last-commit/marcoderoni/legal-gpt-reviewer)
+![Provider](https://img.shields.io/badge/AI-Groq%20%7C%20OpenAI-orange)
+![Architecture](https://img.shields.io/badge/architecture-multi--agent-purple)
+
 **Copyright (c) 2026 Marco De Roni. All rights reserved.**  
 Licensed under the [MIT License](LICENSE).
 

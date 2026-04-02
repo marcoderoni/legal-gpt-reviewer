@@ -36,6 +36,7 @@ enterprise contracting, GDPR compliance, and risk assessment.
 - ⚙️ **Customisable playbook** — define your own positions in YAML, no code changes
 - 📝 **Dual output** — generates Word + PDF report automatically
 - 🌍 **Multilingual** — responds in the same language as the user prompt
+- 🔒 **PII sanitization** — automatically redacts names, dates, emails and sensitive entities before sending to AI provider, then restores them in the final report
 
 ---
 
@@ -197,6 +198,7 @@ provider: "openai"
 - `config/playbook.yaml` excluded from git — positions stay private
 - `.env` excluded from git — API keys stay private
 - All processing via API call to chosen provider (Groq or OpenAI)
+- PII redaction via Microsoft Presidio — 100+ entities automatically anonymised per contract
 
 ---
 

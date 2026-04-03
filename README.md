@@ -6,6 +6,13 @@
 ![Provider](https://img.shields.io/badge/AI-Groq%20%7C%20OpenAI-orange)
 ![Architecture](https://img.shields.io/badge/architecture-multi--agent-purple)
 
+Fix CI workflow YAML
+CI #2: Commit 5758854 pushed by marcoderoni
+main	
+1 minute ago
+ 26s
+
+
 **Copyright (c) 2026 Marco De Roni. All rights reserved.**  
 Licensed under the [MIT License](LICENSE).
 

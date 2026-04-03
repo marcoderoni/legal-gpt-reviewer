@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pdfplumber python-docx pyyaml colorama python-dotenv groq openai
+
+      - name: Check syntax
+        run: |
+          python -m py_compile main.py
+          python -m py_compile reviewer/extractor.py
+          python -m py_compile reviewer/analyzer.py
+          python -m py_compile reviewer/reporter.py
+          python -m py_compile reviewer/sanitizer.py
+          python -m py_compile reviewer/agents.py
+          echo "All files compile successfully"

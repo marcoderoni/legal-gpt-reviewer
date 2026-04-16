@@ -1,0 +1,61 @@
+# ============================================================
+# LEGAL GPT REVIEWER — PLAYBOOK (EXAMPLE)
+# Copy to playbook.yaml and customise with your positions.
+# playbook.yaml is excluded from git — stays private.
+# Copyright (c) 2026 Marco De Roni. All rights reserved.
+# ============================================================
+
+# These positions will be injected into the AI system prompt.
+# The more specific you are, the better the analysis.
+
+positions:
+  limitation_of_liability: |
+    Standard cap: 12 months fees paid. Acceptable fallback: up to 2x ACV.
+    Maximum: 3x ACV — anything above requires escalation.
+    Never accept unlimited liability, including for data breach.
+    Dual cap construct acceptable for data breach: standard cap + heightened cap capped at 2x ACV.
+
+  excluded_damages: |
+    Mutual exclusion of consequential, indirect, incidental and punitive damages is standard.
+    Carve-outs acceptable: breach notification costs, regulatory fines caused by vendor breach.
+    These carve-outs must remain subject to the LOL cap.
+
+  indemnification: |
+    Indemnification must be mutual.
+    Broad unilateral indemnification is RED — must be reciprocal.
+    IP indemnification from vendor is standard and acceptable.
+    Data breach indemnity is rare and requires escalation — must be subject to LOL cap.
+
+  data_protection: |
+    DPA must be referenced and executed separately.
+    SCCs required for international data transfers.
+    Sub-processor list must be available with prior approval mechanism.
+    Breach notification: 72 hours to competent authority, prompt notification to customer.
+
+  confidentiality: |
+    Time-limited confidentiality preferred: 3-5 years is market standard.
+    Perpetual confidentiality is YELLOW — flag and consider negotiating time limit.
+    Standard carve-outs: publicly available info, independently developed, received from third party.
+
+  termination: |
+    Termination for convenience must be present.
+    Standard notice period: 30-90 days.
+    No termination for convenience is RED — unacceptable for SaaS agreements.
+    Termination for cause: 30-day cure period is standard.
+
+  governing_law: |
+    Preferred: English law or laws of the Netherlands.
+    Flag if governing law is not specified.
+    Flag if governing law is unusual or creates enforcement risk in EMEA.
+
+required_clauses:
+  - "Limitation of Liability"
+  - "Excluded Damages"
+  - "Indemnification"
+  - "Confidentiality"
+  - "Data Protection / GDPR"
+  - "Termination"
+  - "Governing Law"
+  - "Dispute Resolution"
+  - "Force Majeure"
+  - "Auto-Renewal"

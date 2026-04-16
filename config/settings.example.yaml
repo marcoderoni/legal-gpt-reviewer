@@ -1,0 +1,22 @@
+# ============================================================
+# LEGAL GPT REVIEWER — SETTINGS
+# Copy to settings.yaml and customise. Excluded from git.
+# Copyright (c) 2026 Marco De Roni. All rights reserved.
+# ============================================================
+
+# AI Provider: "groq" (free) or "openai" (paid)
+provider: "groq"
+
+# Models
+groq_model: "llama-3.3-70b-versatile"
+openai_model: "gpt-4o"
+
+# Max characters to send to the model (keep under 12000 for speed)
+max_chars: 12000
+
+# Output formats: "docx", "pdf", or "both"
+output_format: "both"
+
+# Multi-agent mode: each clause reviewed by a specialist agent
+# True = slower but more accurate | False = single agent, faster
+multi_agent: true

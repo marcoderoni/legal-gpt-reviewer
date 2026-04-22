@@ -50,6 +50,9 @@ enterprise contracting, GDPR compliance, and risk assessment.
 - 📝 **Dual output** — generates Word + PDF report automatically
 - 🌍 **Multilingual** — responds in the same language as the user prompt
 - 🔒 **PII sanitization** — automatically redacts names, dates, emails and sensitive entities before sending to AI provider, then restores them in the final report
+- 🌐 **Streamlit web app** — browser interface, no command line required
+- 📋 **Audit log** — append-only JSONL log with SHA256 integrity hash
+- 🔒 **PII redaction report** — entities redacted before AI analysis, restored in report
 
 ---
 

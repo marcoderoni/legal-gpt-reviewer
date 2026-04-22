@@ -3,15 +3,23 @@
 
 import re
 
-# Try to import presidio — fall back to regex if not available
-try:
-    from presidio_analyzer import AnalyzerEngine
-    from presidio_anonymizer import AnonymizerEngine
-    analyzer = AnalyzerEngine()
-    anonymizer = AnonymizerEngine()
-    PRESIDIO_AVAILABLE = True
-except Exception:
-    PRESIDIO_AVAILABLE = False
+PRESIDIO_AVAILABLE = None  # lazy loading
+_analyzer = None
+_anonymizer = None
+
+
+def _get_engines():
+    global PRESIDIO_AVAILABLE, _analyzer, _anonymizer
+    if PRESIDIO_AVAILABLE is None:
+        try:
+            from presidio_analyzer import AnalyzerEngine
+            from presidio_anonymizer import AnonymizerEngine
+            _analyzer = AnalyzerEngine()
+            _anonymizer = AnonymizerEngine()
+            PRESIDIO_AVAILABLE = True
+        except Exception:
+            PRESIDIO_AVAILABLE = False
+    return PRESIDIO_AVAILABLE, _analyzer, _anonymizer
 
 
 def sanitize(text: str) -> tuple:
@@ -20,7 +28,8 @@ def sanitize(text: str) -> tuple:
     Uses presidio if available, falls back to regex.
     Returns (sanitized_text, mapping) where mapping allows de-sanitization.
     """
-    if PRESIDIO_AVAILABLE:
+    available, _, _ = _get_engines()
+    if available:
         return _sanitize_presidio(text)
     else:
         return _sanitize_regex(text)
@@ -28,6 +37,10 @@ def sanitize(text: str) -> tuple:
 
 def _sanitize_presidio(text: str) -> tuple:
     """ML-based PII detection using Microsoft Presidio."""
+    available, analyzer, anonymizer = _get_engines()
+    if not available:
+        return _sanitize_regex(text)
+
     mapping = {}
     counter = {}
 
@@ -39,15 +52,12 @@ def _sanitize_presidio(text: str) -> tuple:
             "ORG",
             "EMAIL_ADDRESS",
             "PHONE_NUMBER",
-            "IBAN_CODE",
-            "CREDIT_CARD",
             "DATE_TIME",
             "LOCATION",
             "URL",
         ]
     )
 
-    # Sort by position descending to avoid index shift
     results = sorted(results, key=lambda x: x.start, reverse=True)
 
     sanitized = text
@@ -71,21 +81,18 @@ def _sanitize_regex(text: str) -> tuple:
     mapping = {}
     sanitized = text
 
-    # Email addresses
     emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text)
     for i, email in enumerate(set(emails)):
         placeholder = f"[EMAIL_{i+1}]"
         mapping[placeholder] = email
         sanitized = sanitized.replace(email, placeholder)
 
-    # Phone numbers
     phones = re.findall(r'\+?[\d\s\-\(\)]{10,20}', text)
     for i, phone in enumerate(set(phones)):
         placeholder = f"[PHONE_{i+1}]"
         mapping[placeholder] = phone.strip()
         sanitized = sanitized.replace(phone, placeholder)
 
-    # IBAN
     ibans = re.findall(r'\b[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7}([A-Z0-9]?){0,16}\b', text)
     for i, iban in enumerate(set(ibans)):
         placeholder = f"[IBAN_{i+1}]"

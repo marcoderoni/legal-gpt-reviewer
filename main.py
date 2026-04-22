@@ -23,6 +23,18 @@ def parse_args():
     return parser.parse_args()
 
 
+def build_pii_summary(pii_mapping: dict) -> dict:
+    """Build PII summary from mapping."""
+    breakdown = {}
+    for placeholder in pii_mapping.keys():
+        entity_type = placeholder.split("_")[0].replace("[", "")
+        breakdown[entity_type] = breakdown.get(entity_type, 0) + 1
+    return {
+        "total_entities": len(pii_mapping),
+        "breakdown": breakdown
+    }
+
+
 def main():
     args = parse_args()
     settings = load_settings()
@@ -75,12 +87,12 @@ def main():
             print(f"   → {len(text)} caratteri estratti")
 
             # Sanitize PII
+            pii_mapping = {}
             try:
                 from reviewer.sanitizer import sanitize, desanitize
                 text, pii_mapping = sanitize(text)
                 print(f"   → PII sanitizzato: {len(pii_mapping)} entità redatte")
             except Exception as e:
-                pii_mapping = {}
                 print(f"   → PII sanitization skipped: {e}")
 
             # Analyze
@@ -110,12 +122,14 @@ def main():
 
             # Generate report
             print(f"\n   → Generazione report ({output_format})...")
+            pii_summary = build_pii_summary(pii_mapping)
             paths = generate_report(
                 contract_name=filename,
                 analysis=analysis,
                 provider=provider_used,
                 output_dir=OUTPUT_DIR,
-                output_format=output_format
+                output_format=output_format,
+                pii_summary=pii_summary
             )
 
             for fmt, p in paths.items():

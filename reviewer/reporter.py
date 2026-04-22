@@ -8,7 +8,14 @@ from docx.shared import RGBColor, Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 
-def generate_docx(contract_name: str, analysis: str, provider: str, output_dir: str) -> str:
+def generate_docx(
+    contract_name: str,
+    analysis: str,
+    provider: str,
+    output_dir: str,
+    pii_summary: dict = None
+) -> str:
+
     doc = Document()
 
     for section in doc.sections:
@@ -28,6 +35,30 @@ def generate_docx(contract_name: str, analysis: str, provider: str, output_dir: 
     subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
     doc.add_paragraph()
 
+    # --- PII Redaction Summary ---
+    if pii_summary and pii_summary.get("total_entities", 0) > 0:
+        doc.add_heading("Privacy & PII Redaction Summary", level=1)
+        total = pii_summary.get("total_entities", 0)
+        breakdown = pii_summary.get("breakdown", {})
+
+        doc.add_paragraph(
+            f"Before analysis, {total} sensitive entities were automatically "
+            f"redacted and restored in this report."
+        )
+
+        if breakdown:
+            table = doc.add_table(rows=1, cols=2)
+            table.style = "Table Grid"
+            table.rows[0].cells[0].text = "Entity Type"
+            table.rows[0].cells[1].text = "Count"
+            for entity_type, count in sorted(breakdown.items()):
+                row = table.add_row().cells
+                row[0].text = entity_type
+                row[1].text = str(count)
+
+        doc.add_paragraph()
+
+    # --- Analysis content ---
     for line in analysis.split("\n"):
         line = line.strip()
         if not line:
@@ -88,12 +119,13 @@ def generate_report(
     analysis: str,
     provider: str,
     output_dir: str,
-    output_format: str = "both"
+    output_format: str = "both",
+    pii_summary: dict = None
 ) -> dict:
     """Generates Word and/or PDF report."""
     paths = {}
 
-    docx_path = generate_docx(contract_name, analysis, provider, output_dir)
+    docx_path = generate_docx(contract_name, analysis, provider, output_dir, pii_summary=pii_summary)
     paths["docx"] = docx_path
 
     if output_format in ("pdf", "both"):

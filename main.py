@@ -123,6 +123,27 @@ def main():
 
             results.append({"filename": filename, "paths": paths})
 
+            # Audit log
+            try:
+                from reviewer.audit import log_analysis
+                overall = "UNKNOWN"
+                for line in analysis.split("\n"):
+                    if "OVERALL RISK" in line:
+                        if "RED" in line: overall = "RED"
+                        elif "YELLOW" in line: overall = "YELLOW"
+                        elif "GREEN" in line: overall = "GREEN"
+                        break
+                log_analysis(
+                    contract_name=filename,
+                    overall_risk=overall,
+                    provider=provider_used,
+                    mode="multi-agent" if multi_agent else "single",
+                    pii_entities=len(pii_mapping)
+                )
+                print(Fore.GREEN + f"   📋 Audit log aggiornato")
+            except Exception as e:
+                print(Fore.YELLOW + f"   ⚠️  Audit log skipped: {e}")
+
         except Exception as e:
             print(Fore.RED + f"   ❌ Errore: {e}")
 
